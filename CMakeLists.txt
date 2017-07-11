@@ -31,3 +31,7 @@ endif()
 include_directories(${GENIE_INCLUDE_DIRS})
 
 add_executable(GenieReader GenieReader.cxx)
+target_link_libraries(GenieReader ${ROOT_LIBRARIES}
+				  ${GENIE_LIBRARIES}
+				  ${Log4cpp_LIBRARIES}
+				  ${LIBXML2_LIBRARIES} )
