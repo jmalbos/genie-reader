@@ -9,7 +9,7 @@
 void PrintUsage()
 {
   std::cerr << "Usage: GenieReader <input_file>" << std::endl;
-  std::exit();
+  std::exit(EXIT_FAILURE);
 }
 
 
