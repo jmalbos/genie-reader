@@ -62,7 +62,7 @@ int main(int argc, char const *argv[])
     TIter iter(evtrec);
     while ((gpart = dynamic_cast<genie::GHepParticle*>(iter.Next()))) {
      
-      std::cout << "Reading a particle" << std::endl;
+      //std::cout << "Reading a particle" << std::endl;
  
       // We only care about final-state particles (status 1)
       if (gpart->Status() != 1) continue;
@@ -94,6 +94,7 @@ int main(int argc, char const *argv[])
       ofile << "<event>" << std::endl;
       for (Particle p: partv) {
 	ofile << p.pdg_code    << " "
+	      << "1"           << " "
 	      << p.momentum[0] << " "
 	      << p.momentum[1] << " "
 	      << p.momentum[2] << " "
@@ -103,6 +104,7 @@ int main(int argc, char const *argv[])
       ofile << "</event>" << std::endl;
     }
     
+    std::cout << "gmcrec->Clear()" << std::endl;
     gmcrec->Clear(); // DO THIS OR THE DESTRUCTOR WILL SEG FAULT
   }
 

@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(GENIE-READER)
 
 ###  Require C++11
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-overloaded-virtual -Wno-shadow")
@@ -15,7 +15,7 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-overloaded-virtual -Wno-shadow")
 set(CMAKE_MODULE_PATH "${GENIE-READER_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 
 ### Look for external dependencies
-find_package(ROOT REQUIRED Geom EGPythia6 TreePlayer)
+find_package(ROOT REQUIRED Geom EGPythia6 TreePlayer MathCore GenVector)
 find_package(GENIE REQUIRED)
 find_package(LibXml2)
 find_package(Log4cpp)
@@ -35,3 +35,9 @@ target_link_libraries(GenieReader ${ROOT_LIBRARIES}
 				  ${GENIE_LIBRARIES}
 				  ${Log4cpp_LIBRARIES}
 				  ${LIBXML2_LIBRARIES} )
+
+add_executable(TridentMuMuBkgnd TridentMuMuBkgnd.cxx)
+target_link_libraries(TridentMuMuBkgnd ${ROOT_LIBRARIES}
+				       ${GENIE_LIBRARIES}
+				       ${Log4cpp_LIBRARIES}
+				       ${LIBXML2_LIBRARIES} )
