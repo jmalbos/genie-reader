@@ -11,102 +11,99 @@
 
 
 struct Particle {
-  int pdg_code;
-  double momentum [3];
-  double energy;
+  int pdg;
   double mass;
+  double energy;
+  double momentum[3];
 };
-
-
-void PrintUsage()
-{
-  std::cerr << "Usage: GenieReader <input_file>" << std::endl;
-  std::exit(EXIT_FAILURE);
-}
 
 
 int main(int argc, char const *argv[])
 {
-  //if (argc < 2) PrintUsage();
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " <input_file>" << std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+
+  // Open input ROOT file.
+  // Let's assume the second command-line parameters is the filename.
+  TFile ifile(argv[1]);
+  TTree* tree = dynamic_cast<TTree*>(ifile.Get("gtree"));
+  genie::NtpMCEventRecord* gmcrec = 0;
+  tree->GetBranch("gmcrec")->SetAddress(&gmcrec);
+
+  // Do the following if you want to use a TChain and not a TTree
+  //TChain filechain("gtree");
+  //filechain.Add("*.neutrino.*.ghep.root");
+  //genie::NtpMCEventRecord* gmcrec = 0;
+  //filechain.SetBranchAddress("gmcrec", &gmcrec);
 
   // Open output text file
   std::ofstream ofile;
   ofile.open("output.txt", std::ofstream::out);
 
-  // Open ROOT file
-  //TFile input_file(argv[1]);
-  //TTree* tree = dynamic_cast<TTree*>(input_file.Get("gtree"));
-  TChain chain("gtree");
-  chain.Add("*.neutrino.*.ghep.root");  
-  genie::NtpMCEventRecord* gmcrec = 0;
-  //tree->GetBranch("gmcrec")->SetAddress(&gmcrec);
-  chain.SetBranchAddress("gmcrec", &gmcrec);
+  auto entries = tree->GetEntries();
+  //auto entries = filechain.GetEntries();
+  //std::cout << "Number of events: " << entries << std::endl;
 
-  std::cout << "Entries: " << chain.GetEntries() << std::endl;
+  for (auto i=0; i<entries; ++i) {
 
-  for (Long64_t i=0; i<chain.GetEntries(); ++i) {
-    chain.GetEntry(i);
+    tree->GetEntry(i);
+    //chain.GetEntry(i);
 
-    //std::cout << *gmcrec << std::endl;
-    
     genie::EventRecord* evtrec = gmcrec->event;
 
-    bool muon = false;
-    bool pion = false;
+    int number_mupi = 0;
 
-    std::vector<Particle> partv;
-    genie::GHepParticle* gpart = 0;
+    std::vector<Particle> prtv;
+    genie::GHepParticle* gprt = 0;
 
     // Loop through the particles in the GHEP record
-
     TIter iter(evtrec);
-    while ((gpart = dynamic_cast<genie::GHepParticle*>(iter.Next()))) {
-     
-      //std::cout << "Reading a particle" << std::endl;
- 
-      // We only care about final-state particles (status 1)
-      if (gpart->Status() != 1) continue;
+    while ((gprt = dynamic_cast<genie::GHepParticle*>(iter.Next()))) {
 
-      Particle prtcl;
-      prtcl.pdg_code = gpart->Pdg();
-      
-      // Skip GENIE's pseudo particles
-      if (prtcl.pdg_code >= 2000000000) continue;
+      // We only care about final-state particles (i.e. status 1)
+      if (gprt->Status() != 1) continue;
 
-      // Raise the appropiate flags if we see a muon or a pion
-      if (std::abs(prtcl.pdg_code) ==  13) muon = true;
-      else if (std::abs(prtcl.pdg_code) == 211) pion = true;
+      // Ignore GENIE's pseudo-particles
+      if (gprt->Pdg() >= 2000000000) continue;
 
-      prtcl.mass = gpart->Mass();
-      
-      prtcl.energy = gpart->E();
+      Particle prt;
+      prt.pdg = gprt->Pdg();
 
-      prtcl.momentum[0] = gpart->Px();
-      prtcl.momentum[1] = gpart->Py();
-      prtcl.momentum[2] = gpart->Pz();
+      // Count the particle as mu-like if it's a muon or a charged pion
+      if (std::abs(prt.pdg) == 13 || std::abs(prt.pdg) == 211) ++number_mupi;
 
-      partv.push_back(prtcl);
+      prt.mass   = gprt->Mass();
+      prt.energy = gprt->E();
+      prt.momentum[0] = gprt->Px();
+      prt.momentum[1] = gprt->Py();
+      prt.momentum[2] = gprt->Pz();
+
+      prtv.push_back(prt);
     }
 
-    // If both a muon and a charged pion were present in the event
-    // (i.e. the flags are true), we'll store it in the output file
-    if (muon && pion) { 
+    // If the event contains 2 or more mu-like particles,
+    // store it in the output file
+    if (number_mupi >= 2) {
       ofile << "<event>" << std::endl;
-      for (Particle p: partv) {
-	ofile << p.pdg_code    << " "
-	      << "1"           << " "
-	      << p.momentum[0] << " "
-	      << p.momentum[1] << " "
-	      << p.momentum[2] << " "
-	      << p.energy      << " "
-	      << p.mass        << std::endl;
+      for (Particle prt: prtv) {
+        ofile << prt.pdg << " "
+              << "1"     << " "
+              << prt.momentum[0] << " "
+              << prt.momentum[1] << " "
+              << prt.momentum[2] << " "
+              << prt.energy      << " "
+              << prt.mass        << std::endl;
       }
       ofile << "</event>" << std::endl;
     }
-    
-    std::cout << "gmcrec->Clear()" << std::endl;
+
     gmcrec->Clear(); // DO THIS OR THE DESTRUCTOR WILL SEG FAULT
   }
+
+  ofile.close();
+  ifile.Close();
 
   return 0;
 }
