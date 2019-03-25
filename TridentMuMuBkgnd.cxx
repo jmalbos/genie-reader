@@ -42,6 +42,11 @@ int main(int argc, char const *argv[])
   std::ofstream ofile;
   ofile.open("output.txt", std::ofstream::out);
 
+  // Origin of coordinates for vertices
+  double x_0 = 0.00;
+  double y_0 = 3.06;
+  double z_0 = 2.59;
+
   auto entries = tree->GetEntries();
   //auto entries = filechain.GetEntries();
   //std::cout << "Number of events: " << entries << std::endl;
@@ -86,7 +91,14 @@ int main(int argc, char const *argv[])
     // If the event contains 2 or more mu-like particles,
     // store it in the output file
     if (number_mupi >= 2) {
+
       ofile << "<event>" << std::endl;
+
+      ofile << (evtrec->Vertex()->X() - x_0) << " "
+            << (evtrec->Vertex()->Y() - y_0) << " "
+            << (evtrec->Vertex()->Z() - z_0) << " "
+            << std::endl;
+
       for (Particle prt: prtv) {
         ofile << prt.pdg << " "
               << "1"     << " "
@@ -96,6 +108,7 @@ int main(int argc, char const *argv[])
               << prt.energy      << " "
               << prt.mass        << std::endl;
       }
+
       ofile << "</event>" << std::endl;
     }
 
