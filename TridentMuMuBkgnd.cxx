@@ -26,7 +26,7 @@ int main(int argc, char const *argv[])
   }
 
   // Open input ROOT file.
-  // Let's assume the second command-line parameters is the filename.
+  // Let's assume the second command-line parameter is the input filename.
   TFile ifile(argv[1]);
   TTree* tree = dynamic_cast<TTree*>(ifile.Get("gtree"));
   genie::NtpMCEventRecord* gmcrec = 0;
@@ -58,12 +58,16 @@ int main(int argc, char const *argv[])
 
     genie::EventRecord* evtrec = gmcrec->event;
 
-    int number_mupi = 0;
+    // Ignore inteactions happening on elements other than argon
+    const genie::Target& tgt = evtrec->Summary()->InitState().Tgt();
+    if (tgt.Z() != 18) continue;
 
+
+    // Loop through the particles in the GHEP record
+    int number_mupi = 0;
     std::vector<Particle> prtv;
     genie::GHepParticle* gprt = 0;
 
-    // Loop through the particles in the GHEP record
     TIter iter(evtrec);
     while ((gprt = dynamic_cast<genie::GHepParticle*>(iter.Next()))) {
 
