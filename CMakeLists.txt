@@ -2,48 +2,24 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 ### Set the project name
-project(GENIE-READER)
+project(genie-reader)
 
 ###  Require C++11
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_STANDARD 14)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-overloaded-virtual -Wno-shadow")
+#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-overloaded-virtual -Wno-shadow")
 
 ### Append to the CMAKE_MODULE_PATH variable the path to the directory
 ### with additional CMake modules
-set(CMAKE_MODULE_PATH "${GENIE-READER_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 ### Look for external dependencies
 find_package(ROOT REQUIRED Geom EGPythia6 TreePlayer MathCore GenVector)
 find_package(GENIE REQUIRED)
-find_package(LibXml2)
-find_package(Log4cpp)
+find_package(LibXml2 REQUIRED)
+find_package(Log4cpp REQUIRED)
 
-if(EXISTS ${ROOT_USE_FILE})
-  ### ROOT found using the ROOTConfig.cmake module
-  include(${ROOT_USE_FILE})
-else()
-  ### ROOT found using the FindROOT.cmake module
-  include_directories(${ROOT_INCLUDE_DIRS})
-endif()
+include(${ROOT_USE_FILE})
 
-include_directories(${GENIE_INCLUDE_DIRS})
-
-# add_executable(GenieReader GenieReader.cxx)
-# target_link_libraries(GenieReader ${ROOT_LIBRARIES}
-# 				  ${GENIE_LIBRARIES}
-# 				  ${Log4cpp_LIBRARIES}
-# 				  ${LIBXML2_LIBRARIES} )
-
-add_executable(VertexPosition VertexPosition.cxx)
-target_link_libraries(VertexPosition  ${ROOT_LIBRARIES}
-				                              ${GENIE_LIBRARIES}
-				                              ${Log4cpp_LIBRARIES}
-				                              ${LIBXML2_LIBRARIES} )
-
-add_executable(TridentMuMuBkgnd TridentMuMuBkgnd.cxx)
-target_link_libraries(TridentMuMuBkgnd ${ROOT_LIBRARIES}
-				       ${GENIE_LIBRARIES}
-				       ${Log4cpp_LIBRARIES}
-				       ${LIBXML2_LIBRARIES} )
+add_subdirectory(src)

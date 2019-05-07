@@ -17,6 +17,9 @@ struct Particle {
   double momentum[3];
 };
 
+//### Numero de evento
+//M_weight		N_weight		MN		USquared		L_lab_N		x_0		y_0		z_0		thetaN		phiN		M_width_CM		BR_M		N_width_CM		BR_N		time_N
+
 
 int main(int argc, char const *argv[])
 {
@@ -62,12 +65,10 @@ int main(int argc, char const *argv[])
     const genie::Target& tgt = evtrec->Summary()->InitState().Tgt();
     if (tgt.Z() != 18) continue;
 
-
     // Loop through the particles in the GHEP record
-    int number_mupi = 0;
+    int number_mulike = 0;
     std::vector<Particle> prtv;
     genie::GHepParticle* gprt = 0;
-
     TIter iter(evtrec);
     while ((gprt = dynamic_cast<genie::GHepParticle*>(iter.Next()))) {
 
@@ -81,39 +82,48 @@ int main(int argc, char const *argv[])
       prt.pdg = gprt->Pdg();
 
       // Count the particle as mu-like if it's a muon or a charged pion
-      if (std::abs(prt.pdg) == 13 || std::abs(prt.pdg) == 211) ++number_mupi;
+      if (std::abs(prt.pdg) == 13 || std::abs(prt.pdg) == 211) ++number_mulike;
 
+      // Store the particle in the particle vector
       prt.mass   = gprt->Mass();
       prt.energy = gprt->E();
       prt.momentum[0] = gprt->Px();
       prt.momentum[1] = gprt->Py();
       prt.momentum[2] = gprt->Pz();
-
       prtv.push_back(prt);
     }
 
     // If the event contains 2 or more mu-like particles,
     // store it in the output file
-    if (number_mupi >= 2) {
+    if (number_mulike >= 2) {
 
-      ofile << "<event>" << std::endl;
+      ofile << "### " << i << std::endl;
 
-      ofile << (evtrec->Vertex()->X() - x_0) << " "
-            << (evtrec->Vertex()->Y() - y_0) << " "
-            << (evtrec->Vertex()->Z() - z_0) << " "
+      ofile << 0 << "   "
+            << 0 << "   "
+            << 0 << "   "
+            << 0 << "   "
+            << 0 << "   "
+            << evtrec->Vertex()->X() << "   "
+            << evtrec->Vertex()->Y() << "   "
+            << evtrec->Vertex()->Z() << "   "
+            << 0 << "   "
+            << 0 << "   "
+            << 0 << "   "
+            << 0 << "   "
+            << 0 << "   "
+            << 0 << "   "
+            << 0 << "   "
             << std::endl;
 
       for (Particle prt: prtv) {
-        ofile << prt.pdg << " "
-              << "1"     << " "
-              << prt.momentum[0] << " "
-              << prt.momentum[1] << " "
-              << prt.momentum[2] << " "
-              << prt.energy      << " "
-              << prt.mass        << std::endl;
+        ofile << prt.pdg         << "   "
+              << prt.energy      << "   "
+              << prt.momentum[0] << "   "
+              << prt.momentum[1] << "   "
+              << prt.momentum[2] << "   "
+              << std::endl;
       }
-
-      ofile << "</event>" << std::endl;
     }
 
     gmcrec->Clear(); // DO THIS OR THE DESTRUCTOR WILL SEG FAULT
